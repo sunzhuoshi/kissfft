@@ -5,6 +5,11 @@
  *  SPDX-License-Identifier: BSD-3-Clause
  *  See COPYING file for more information.
  */
+#ifdef __APPLE__
+#define __MATH_LONG_DOUBLE_CONSTANTS
+#include <math.h>
+#endif
+
 #include "kissfft.hh"
 #include <iostream>
 #include <cstdlib>
