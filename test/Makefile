@@ -57,13 +57,15 @@ endif
 
 FFTWLIBDIR=-L/usr/local/lib/
 
-SRCFILES=../kiss_fft.c ../tools/kiss_fftnd.c ../tools/kiss_fftr.c pstats.c ../tools/kfc.c ../tools/kiss_fftndr.c
+SRCFILES=../kiss_fft.c ../ispc/kiss_fft_ispc.o ../tools/kiss_fftnd.c ../tools/kiss_fftr.c pstats.c ../tools/kfc.c ../tools/kiss_fftndr.c
 
-all: tools $(BENCHKISS) $(SELFTEST) $(BENCHFFTW) $(TESTREAL) $(TESTKFC)
+all: tools ispc $(BENCHKISS) $(SELFTEST) $(BENCHFFTW) $(TESTREAL) $(TESTKFC)
 
 tools:
 	cd ../tools && make all
 
+ispc:
+	cd ../ispc && make TYPEFLAGS=$(TYPEFLAGS) 
 
 $(SELFTEST): $(SELFTESTSRC) $(SRCFILES)
 	$(CC) -o $@ $(CFLAGS) $(TYPEFLAGS) $+ -lm 

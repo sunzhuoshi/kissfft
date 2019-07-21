@@ -6,11 +6,12 @@
  *  See COPYING file for more information.
  */
 
-
+#include "kiss_fft.h"
 #include "_kiss_fft_guts.h"
 /* The guts header contains all the multiplication and addition macros that are defined for
  fixed or floating point complex numbers.  It also delares the kf_ internal functions.
  */
+#include "ispc/kiss_fft_ispc.h"
 
 static void kf_bfly2(
         kiss_fft_cpx * Fout,
@@ -19,6 +20,7 @@ static void kf_bfly2(
         int m
         )
 {
+#if 0
     kiss_fft_cpx * Fout2;
     kiss_fft_cpx * tw1 = st->twiddles;
     kiss_fft_cpx t;
@@ -32,7 +34,11 @@ static void kf_bfly2(
         C_ADDTO( *Fout ,  t );
         ++Fout2;
         ++Fout;
+        //printf("[kf_bfly2] m: %d\n", m);
     }while (--m);
+#else 
+    ispc_bfly2((struct ispc_cpx *)Fout, fstride, (struct ispc_state *)st, m);
+#endif 
 }
 
 static void kf_bfly4(

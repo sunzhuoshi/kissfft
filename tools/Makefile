@@ -34,7 +34,7 @@ FASTFILTREAL=fastconvr_$(DATATYPE)
 PSDPNG=psdpng_$(DATATYPE)
 DUMPHDR=dumphdr_$(DATATYPE)
 
-all: $(FFTUTIL) $(FASTFILT) $(FASTFILTREAL) 
+all: ispc $(FFTUTIL) $(FASTFILT) $(FASTFILTREAL) 
 # 	$(PSDPNG) 
 #	$(DUMPHDR)
 
@@ -43,19 +43,25 @@ all: $(FFTUTIL) $(FASTFILT) $(FASTFILTREAL)
 CFLAGS=-Wall -O3 $(WARNINGS) 
 # tip: try -openmp or -fopenmp to use multiple cores
 
-$(FASTFILTREAL): ../kiss_fft.c kiss_fastfir.c kiss_fftr.c
+ispc/kiss_fft_ispc.o:
+	ispc
+
+ispc:
+	cd ../ispc && make TYPEFLAGS=$(TYPEFLAGS)
+
+$(FASTFILTREAL): ../kiss_fft.c ../ispc/kiss_fft_ispc.o kiss_fastfir.c kiss_fftr.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) -DREAL_FASTFIR  $+ -DFAST_FILT_UTIL -lm 
 
-$(FASTFILT): ../kiss_fft.c kiss_fastfir.c
+$(FASTFILT): ../kiss_fft.c ../ispc/kiss_fft_ispc.o kiss_fastfir.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) $+  -DFAST_FILT_UTIL -lm
 
-$(FFTUTIL): ../kiss_fft.c fftutil.c kiss_fftnd.c kiss_fftr.c kiss_fftndr.c
+$(FFTUTIL): ../kiss_fft.c ../ispc/kiss_fft_ispc.o fftutil.c kiss_fftnd.c kiss_fftr.c kiss_fftndr.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) $+ -lm
 
-$(PSDPNG): ../kiss_fft.c psdpng.c kiss_fftr.c
+$(PSDPNG): ../kiss_fft.c ../ispc/kiss_fft_ispc.o psdpng.c kiss_fftr.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) $+ -lpng -lm
 
-$(DUMPHDR): ../kiss_fft.c dumphdr.c
+$(DUMPHDR): ../kiss_fft.c ../ispc/kiss_fft_ispc.o dumphdr.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) $+ -lm
 
 clean:

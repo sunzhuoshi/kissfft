@@ -6,13 +6,16 @@
  *  See COPYING file for more information.
  */
 
-/* kiss_fft.h
+/* kiss_fft_def.h
    defines kiss_fft_scalar as either short or a float type
    and defines
    typedef struct { kiss_fft_scalar r; kiss_fft_scalar i; }kiss_fft_cpx; */
-#include "kiss_fft.h"
+#include "kiss_fft_def.h"
+#if ISPC 
+// TODO: fix it?
+#else
 #include <limits.h>
-
+#endif 
 #define MAXFACTORS 32
 /* e.g. an fft of length 128 has 4 factors 
  as far as kissfft is concerned
@@ -36,7 +39,11 @@ struct kiss_fft_state{
    C_ADDTO( res , a)    : res += a
  * */
 #ifdef FIXED_POINT
+#ifdef ISPC
+#include "ispc/stdint.h"
+#else
 #include <stdint.h>
+#endif
 #if (FIXED_POINT==32)
 # define FRACBITS 31
 # define SAMPPROD int64_t

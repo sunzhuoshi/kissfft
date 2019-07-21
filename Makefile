@@ -1,4 +1,5 @@
 KFVER=131
+TYPEFLAGS=-Dkiss_fft_scalar=float
 
 ifeq ($(shell uname -s),Darwin)
 	SHARED := -Wl,-install_name,libkissfft.dylib -o libkissfft.dylib
@@ -7,9 +8,10 @@ else
 endif
 
 all:
-	gcc -Wall -fPIC -c *.c -Dkiss_fft_scalar=float -o kiss_fft.o
-	ar crus libkissfft.a kiss_fft.o
-	gcc -shared $(SHARED) kiss_fft.o
+	gcc -Wall -fPIC -c *.c $(TYPEFLAGS) -o kiss_fft.o 
+	make -C ispc TYPEFLAGS=$(TYPEFLAGS)
+	ar crus libkissfft.a kiss_fft.o ispc/kiss_fft_ispc.o
+	gcc -shared $(SHARED) kiss_fft.o ispc/kiss_fft_ispc.o
 
 install: all
 	cp libkissfft.so /usr/local/lib/
@@ -23,7 +25,8 @@ doc:
 testall:
 	# The simd and int32_t types may or may not work on your machine 
 	make -C test testcpp && test/testcpp
-	make -C test DATATYPE=simd CFLAGADD="$(CFLAGADD)" test
+	# no simd datatype support for ISPC branch
+	#make -C test DATATYPE=simd CFLAGADD="$(CFLAGADD)" test
 	make -C test DATATYPE=int32_t CFLAGADD="$(CFLAGADD)" test
 	make -C test DATATYPE=int16_t CFLAGADD="$(CFLAGADD)" test
 	make -C test DATATYPE=float CFLAGADD="$(CFLAGADD)" test
