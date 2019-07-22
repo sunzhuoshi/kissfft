@@ -1,7 +1,9 @@
 
 WARNINGS=-W -Wall -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return \
-    -Wcast-align -Wcast-qual -Wnested-externs -Wshadow -Wbad-function-cast \
+    -Wcast-qual -Wnested-externs -Wshadow -Wbad-function-cast \
     -Wwrite-strings
+
+#WARNING+=-Wcast-align
 
 CFLAGS=-O3 -I.. -I../tools $(WARNINGS)
 CFLAGS+=-ffast-math -fomit-frame-pointer 
