@@ -13,6 +13,8 @@
  */
 #include "ispc/kiss_fft_ispc.h"
 
+#define USE_ISPC 1  
+
 static void kf_bfly2(
         kiss_fft_cpx * Fout,
         const size_t fstride,
@@ -20,7 +22,9 @@ static void kf_bfly2(
         int m
         )
 {
-#if 0
+#if USE_ISPC
+    ispc_bfly2((struct ispc_cpx *)Fout, fstride, (struct ispc_state *)st, m);
+#else 
     kiss_fft_cpx * Fout2;
     kiss_fft_cpx * tw1 = st->twiddles;
     kiss_fft_cpx t;
@@ -34,10 +38,7 @@ static void kf_bfly2(
         C_ADDTO( *Fout ,  t );
         ++Fout2;
         ++Fout;
-        //printf("[kf_bfly2] m: %d\n", m);
     }while (--m);
-#else 
-    ispc_bfly2((struct ispc_cpx *)Fout, fstride, (struct ispc_state *)st, m);
 #endif 
 }
 
@@ -48,6 +49,9 @@ static void kf_bfly4(
         const size_t m
         )
 {
+#if USE_ISPC
+    ispc_bfly4((struct ispc_cpx *)Fout, fstride, (struct ispc_state *)st, m);
+#else
     kiss_fft_cpx *tw1,*tw2,*tw3;
     kiss_fft_cpx scratch[6];
     size_t k=m;
@@ -87,6 +91,7 @@ static void kf_bfly4(
         }
         ++Fout;
     }while(--k);
+#endif
 }
 
 static void kf_bfly3(
@@ -140,6 +145,9 @@ static void kf_bfly5(
         int m
         )
 {
+#if USE_ISPC
+    ispc_bfly5((struct ispc_cpx *)Fout, fstride, (struct ispc_state *)st, m);
+#else    
     kiss_fft_cpx *Fout0,*Fout1,*Fout2,*Fout3,*Fout4;
     int u;
     kiss_fft_cpx scratch[13];
@@ -192,6 +200,7 @@ static void kf_bfly5(
 
         ++Fout0;++Fout1;++Fout2;++Fout3;++Fout4;
     }
+#endif
 }
 
 /* perform the butterfly for one stage of a mixed radix FFT */
