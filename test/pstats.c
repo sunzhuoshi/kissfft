@@ -20,7 +20,7 @@ static int has_times = 0;
 
 void pstats_init(void)
 {
-    has_times = times(&tms_beg) != -1;
+    has_times = times(&tms_beg) != (clock_t)-1;
 }
 
 static void tms_report(void)
