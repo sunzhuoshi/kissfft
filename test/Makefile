@@ -59,15 +59,27 @@ endif
 
 FFTWLIBDIR=-L/usr/local/lib/
 
-SRCFILES=../kiss_fft.c ../ispc/kiss_fft_ispc.o ../tools/kiss_fftnd.c ../tools/kiss_fftr.c pstats.c ../tools/kfc.c ../tools/kiss_fftndr.c
+ifeq "$(USE_ISPC)" ""
+ USE_ISPC=0
+endif
+ISPC_OBJS=
+ifeq ($(USE_ISPC), 1)
+ ISPC_OBJS=../ispc/kiss_fft_ispc.o
+ TYPEFLAGS+=-DUSE_ISPC=1
+endif
 
-all: tools ispc $(BENCHKISS) $(SELFTEST) $(BENCHFFTW) $(TESTREAL) $(TESTKFC)
+SRCFILES=../kiss_fft.c $(ISPC_OBJS) ../tools/kiss_fftnd.c ../tools/kiss_fftr.c pstats.c ../tools/kfc.c ../tools/kiss_fftndr.c
+
+all: tools $(BENCHKISS) $(SELFTEST) $(BENCHFFTW) $(TESTREAL) $(TESTKFC)
 
 tools:
-	cd ../tools && make all
+	cd ../tools && make all TYPEFLAGS="$(TYPEFLAGS)"
 
+# force to generate ISPC file(s)
 ispc:
-	cd ../ispc && make TYPEFLAGS=$(TYPEFLAGS) 
+	make -C ispc TYPEFLAGS=$(TYPEFLAGS) 
+
+../ispc_kiss_fft_ispc.o: ispc
 
 $(SELFTEST): $(SELFTESTSRC) $(SRCFILES)
 	$(CC) -o $@ $(CFLAGS) $(TYPEFLAGS) $+ -lm 
@@ -103,3 +115,4 @@ testcpp: testcpp.cc ../kissfft.hh
 
 clean:
 	rm -f *~ bm_* st_* tr_* kf_* tkfc_* ff_* ffr_* *.pyc *.pyo *.dat testcpp
+	make -C ../tools clean

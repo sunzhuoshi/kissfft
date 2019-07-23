@@ -1,6 +1,20 @@
+# use "make testall USE_ISPC=1" to test ISPC version(experimental)
 KFVER=131
 TYPEFLAGS=-Dkiss_fft_scalar=float
 
+ifeq "$(USE_ISPC)" ""
+ USE_ISPC=0
+endif
+
+ISPC_MAKE=@echo ""
+ISPC_OBJS=
+MAKE_SIMD=make -C test DATATYPE=simd CFLAGADD="$(CFLAGADD)" test
+ifeq ($(USE_ISPC), 1)
+ ISPC_MAKE=make -C ispc TYPEFLAGS=$(TYPEFLAGS)
+ ISPC_OBJS=ispc/kiss_fft_ispc.o
+ MAKE_SIMD=@echo "NOTE: no simd datatype support for ISPC"
+endif
+	
 ifeq ($(shell uname -s),Darwin)
 	SHARED := -Wl,-install_name,libkissfft.dylib -o libkissfft.dylib
 else
@@ -9,9 +23,9 @@ endif
 
 all:
 	gcc -Wall -fPIC -c *.c $(TYPEFLAGS) -o kiss_fft.o 
-	make -C ispc TYPEFLAGS=$(TYPEFLAGS)
-	ar crus libkissfft.a kiss_fft.o ispc/kiss_fft_ispc.o
-	gcc -shared $(SHARED) kiss_fft.o ispc/kiss_fft_ispc.o
+	$(ISPC_MAKE)
+	ar crus libkissfft.a kiss_fft.o $(ISPC_OBJS)
+	gcc -shared $(SHARED) kiss_fft.o $(ISPC_OBJS)
 
 install: all
 	cp libkissfft.so /usr/local/lib/
@@ -23,10 +37,10 @@ doc:
 	@echo "of kissfft and would like to make use of its regression tests."
 
 testall:
-	# The simd and int32_t types may or may not work on your machine 
+	# The simd and int32_t types may or may not work on your machine
+	# USE_ISPC: $(USE_ISPC)
 	make -C test testcpp && test/testcpp
-	# no simd datatype support for ISPC branch
-	#make -C test DATATYPE=simd CFLAGADD="$(CFLAGADD)" test
+	$(MAKE_SIMD)
 	make -C test DATATYPE=int32_t CFLAGADD="$(CFLAGADD)" test
 	make -C test DATATYPE=int16_t CFLAGADD="$(CFLAGADD)" test
 	make -C test DATATYPE=float CFLAGADD="$(CFLAGADD)" test

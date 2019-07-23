@@ -36,7 +36,16 @@ FASTFILTREAL=fastconvr_$(DATATYPE)
 PSDPNG=psdpng_$(DATATYPE)
 DUMPHDR=dumphdr_$(DATATYPE)
 
-all: ispc $(FFTUTIL) $(FASTFILT) $(FASTFILTREAL) 
+ifeq "$(USE_ISPC)" ""
+ USE_ISPC=0
+endif
+ISPC_OBJS=
+ifeq ($(USE_ISPC), 1)
+ ISPC_OBJS=../ispc/kiss_fft_ispc.o
+ TYPEFLAGS+=-DUSE_ISPC=1
+endif
+
+all: $(FFTUTIL) $(FASTFILT) $(FASTFILTREAL) 
 # 	$(PSDPNG) 
 #	$(DUMPHDR)
 
@@ -45,26 +54,27 @@ all: ispc $(FFTUTIL) $(FASTFILT) $(FASTFILTREAL)
 CFLAGS=-Wall -O3 $(WARNINGS) 
 # tip: try -openmp or -fopenmp to use multiple cores
 
-ispc/kiss_fft_ispc.o:
-	ispc
-
+# force to generate ISPC file(s)
 ispc:
-	cd ../ispc && make TYPEFLAGS=$(TYPEFLAGS)
+	make -C ../ispc TYPEFLAGS="$(TYPEFLAGS)" 
 
-$(FASTFILTREAL): ../kiss_fft.c ../ispc/kiss_fft_ispc.o kiss_fastfir.c kiss_fftr.c
+../ispc/kiss_fft_ispc.o: ispc	
+
+$(FASTFILTREAL): ../kiss_fft.c $(ISPC_OBJS) kiss_fastfir.c kiss_fftr.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) -DREAL_FASTFIR  $+ -DFAST_FILT_UTIL -lm 
 
-$(FASTFILT): ../kiss_fft.c ../ispc/kiss_fft_ispc.o kiss_fastfir.c
+$(FASTFILT): ../kiss_fft.c $(ISPC_OBJS) kiss_fastfir.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) $+  -DFAST_FILT_UTIL -lm
 
-$(FFTUTIL): ../kiss_fft.c ../ispc/kiss_fft_ispc.o fftutil.c kiss_fftnd.c kiss_fftr.c kiss_fftndr.c
+$(FFTUTIL): ../kiss_fft.c $(ISPC_OBJS) fftutil.c kiss_fftnd.c kiss_fftr.c kiss_fftndr.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) $+ -lm
 
-$(PSDPNG): ../kiss_fft.c ../ispc/kiss_fft_ispc.o psdpng.c kiss_fftr.c
+$(PSDPNG): ../kiss_fft.c $(ISPC_OBJS) psdpng.c kiss_fftr.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) $+ -lpng -lm
 
-$(DUMPHDR): ../kiss_fft.c ../ispc/kiss_fft_ispc.o dumphdr.c
+$(DUMPHDR): ../kiss_fft.c $(ISPC_OBJS) dumphdr.c
 	$(CC) -o $@ $(CFLAGS) -I.. $(TYPEFLAGS) $+ -lm
 
 clean:
 	rm -f *~ fft fft_* fastconv fastconv_* fastconvr fastconvr_* psdpng psdpng_*
+	make -C ../ispc clean
