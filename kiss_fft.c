@@ -11,9 +11,9 @@
 /* The guts header contains all the multiplication and addition macros that are defined for
  fixed or floating point complex numbers.  It also delares the kf_ internal functions.
  */
+#if USE_ISPC
 #include "ispc/kiss_fft_ispc.h"
-
-#define USE_ISPC 1  
+#endif
 
 static void kf_bfly2(
         kiss_fft_cpx * Fout,
