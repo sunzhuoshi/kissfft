@@ -5,19 +5,40 @@ struct ispc_cpx {
     kiss_fft_scalar i;
 };
 
-inline void mul(ispc_cpx &m, ispc_cpx a, ispc_cpx b) {
+#if 1
+#define QUALIFIER uniform
+#else 
+#define qualifer vary
+#endif
+
+inline void mul(QUALIFIER ispc_cpx &m, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
     m.r = a.r * b.r - a.i * b.i;
     m.i = a.r * b.i + a.i * b.r;
 }
 
-inline void sub(ispc_cpx &res, ispc_cpx a, ispc_cpx b) {
+inline void sub(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
     res.r = a.r - b.r;
     res.i = a.i - b.i;
 }
 
-inline void addto(ispc_cpx &res, ispc_cpx a) {
+inline void add(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
+    res.r = a.r + b.r;
+    res.i = a.i + b.i;
+}
+
+inline void addto(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a) {
     res.r += a.r;
     res.i += a.i;
+}
+
+inline void sum_sa(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
+    res.r = a.r - b.i;
+    res.i = a.i + b.r;
+}
+
+inline void sum_as(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
+    res.r = a.r + b.i;
+    res.i = a.i - b.r;
 }
 
 struct ispc_state {
@@ -41,6 +62,8 @@ export void ispc_bfly2(
         ispc_cpx t_out = Fout[i];
         ispc_cpx t;
         
+        // TODO: support FIXED_POINT
+        // C_FIXDIV(*Fout,2); C_FIXDIV(*Fout2,2);
         mul(t, t_out2, t_i);
         sub(t_out2, t_out, t);
         addto(t_out,  t);
@@ -73,45 +96,46 @@ export void ispc_bfly4(
         uniform int m
         )
 {
-    ispc_cpx * uniform tw1,* uniform tw2,* uniform tw3;
+    ispc_cpx * uniform tw;
     ispc_cpx uniform scratch[6];
-    uniform size_t k=m;
     const uniform size_t m2=2*m;
     const uniform size_t m3=3*m;
 
+    tw = st->twiddles;
 
-    tw3 = tw2 = tw1 = st->twiddles;
+    for (uniform int i=0; i<m; ++i) {
+        // TODO: support FIXED_POINT
+        //C_FIXDIV(*Fout,4); C_FIXDIV(Fout[m],4); C_FIXDIV(Fout[m2],4); C_FIXDIV(Fout[m3],4);
+        uniform ispc_cpx t_out = Fout[i];
+        uniform ispc_cpx t_out1 = Fout[m + i];
+        uniform ispc_cpx t_out2 = Fout[m2 + i];
+        uniform ispc_cpx t_out3 = Fout[m3 + i];
+        uniform ispc_cpx t_1 = tw[fstride * i];
+        uniform ispc_cpx t_2 = tw[fstride * 2 * i];
+        uniform ispc_cpx t_3 = tw[fstride * 3 * i];
 
-    do {
-        C_FIXDIV(*Fout,4); C_FIXDIV(Fout[m],4); C_FIXDIV(Fout[m2],4); C_FIXDIV(Fout[m3],4);
-
-        C_MUL(scratch[0],Fout[m] , *tw1 );
-        C_MUL(scratch[1],Fout[m2] , *tw2 );
-        C_MUL(scratch[2],Fout[m3] , *tw3 );
-
-        C_SUB( scratch[5] , *Fout, scratch[1] );
-        C_ADDTO(*Fout, scratch[1]);
-        C_ADD( scratch[3] , scratch[0] , scratch[2] );
-        C_SUB( scratch[4] , scratch[0] , scratch[2] );
-        C_SUB( Fout[m2], *Fout, scratch[3] );
-        tw1 += fstride;
-        tw2 += fstride*2;
-        tw3 += fstride*3;
-        C_ADDTO( *Fout , scratch[3] );
+        mul(scratch[0], t_out1, t_1);
+        mul(scratch[1], t_out2, t_2);
+        mul(scratch[2], t_out3, t_3);
+        sub(scratch[5], t_out, scratch[1]);
+        addto(t_out, scratch[1]);
+        add(scratch[3], scratch[0], scratch[2]);
+        sub(scratch[4], scratch[0], scratch[2]);
+        sub(t_out2, t_out, scratch[3]);
+        addto(t_out, scratch[3]);
 
         if(st->inverse) {
-            Fout[m].r = scratch[5].r - scratch[4].i;
-            Fout[m].i = scratch[5].i + scratch[4].r;
-            Fout[m3].r = scratch[5].r + scratch[4].i;
-            Fout[m3].i = scratch[5].i - scratch[4].r;
+            sum_sa(t_out1, scratch[5], scratch[4]);
+            sum_as(t_out3, scratch[5], scratch[4]);
         }else{
-            Fout[m].r = scratch[5].r + scratch[4].i;
-            Fout[m].i = scratch[5].i - scratch[4].r;
-            Fout[m3].r = scratch[5].r - scratch[4].i;
-            Fout[m3].i = scratch[5].i + scratch[4].r;
+            sum_as(t_out1, scratch[5], scratch[4]);
+            sum_sa(t_out3, scratch[5], scratch[4]);
         }
-        ++Fout;
-    }while(--k);
+        Fout[i] = t_out;
+        Fout[m + i] = t_out1;
+        Fout[m2 + i] = t_out2;
+        Fout[m3 + i] = t_out3;
+    }
 }
 
 export void ispc_bfly5(
