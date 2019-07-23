@@ -8,7 +8,7 @@ struct ispc_cpx {
 #if 1
 #define QUALIFIER uniform
 #else 
-#define qualifer vary
+#define QUALIFIER 
 #endif
 
 inline void mul(QUALIFIER ispc_cpx &m, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
@@ -96,6 +96,46 @@ export void ispc_bfly4(
         uniform int m
         )
 {
+    ispc_cpx * uniform tw = st->twiddles;
+    ispc_cpx scratch[6];
+    const size_t m2=2*m;
+    const size_t m3=3*m;
+
+#if 0
+    foreach (i = 1 ... m) {
+        // TODO: support FIXED_POINT
+        //C_FIXDIV(*Fout,4); C_FIXDIV(Fout[m],4); C_FIXDIV(Fout[m2],4); C_FIXDIV(Fout[m3],4);
+        ispc_cpx t_out = Fout[i];
+        ispc_cpx t_out1 = Fout[m + i];
+        ispc_cpx t_out2 = Fout[m2 + i];
+        ispc_cpx t_out3 = Fout[m3 + i];
+        ispc_cpx t_1 = tw[fstride * i];
+        ispc_cpx t_2 = tw[fstride * 2 * i];
+        ispc_cpx t_3 = tw[fstride * 3 * i];
+
+        mul(scratch[0], t_out1, t_1);
+        mul(scratch[1], t_out2, t_2);
+        mul(scratch[2], t_out3, t_3);
+        sub(scratch[5], t_out, scratch[1]);
+        addto(t_out, scratch[1]);
+        add(scratch[3], scratch[0], scratch[2]);
+        sub(scratch[4], scratch[0], scratch[2]);
+        sub(t_out2, t_out, scratch[3]);
+        addto(t_out, scratch[3]);
+
+        if(st->inverse) {
+            sum_sa(t_out1, scratch[5], scratch[4]);
+            sum_as(t_out3, scratch[5], scratch[4]);
+        }else{
+            sum_as(t_out1, scratch[5], scratch[4]);
+            sum_sa(t_out3, scratch[5], scratch[4]);
+        }
+        Fout[i] = t_out;
+        Fout[m + i] = t_out1;
+        Fout[m2 + i] = t_out2;
+        Fout[m3 + i] = t_out3;
+    }
+#else 
     ispc_cpx * uniform tw;
     ispc_cpx uniform scratch[6];
     const uniform size_t m2=2*m;
@@ -136,6 +176,7 @@ export void ispc_bfly4(
         Fout[m2 + i] = t_out2;
         Fout[m3 + i] = t_out3;
     }
+#endif
 }
 
 export void ispc_bfly5(
