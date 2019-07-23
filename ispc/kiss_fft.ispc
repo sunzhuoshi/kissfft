@@ -20,22 +20,6 @@ inline void addto(ispc_cpx &res, ispc_cpx a) {
     res.i += a.i;
 }
 
-/*
-inline void mul(uniform ispc_cpx &m, uniform ispc_cpx a, uniform ispc_cpx b) {
-    m.r = a.r * b.r - a.i * b.i;
-    m.i = a.r * b.i + a.i * b.r;
-}
-
-inline void sub(uniform ispc_cpx &res, uniform ispc_cpx a, uniform ispc_cpx b) {
-    res.r = a.r - b.r;
-    res.i = a.i - b.i;
-}
-
-inline void addto(uniform ispc_cpx &res, uniform ispc_cpx a) {
-    res.r += a.r;
-    res.i += a.i;
-}
-*/
 struct ispc_state {
     int nfft;
     int inverse;
