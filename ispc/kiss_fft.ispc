@@ -1,42 +1,50 @@
+/*
+ *  Copyright (c) 2003-2010, Mark Borgerding. All rights reserved.
+ *  This file is part of KISS FFT - https://github.com/mborgerding/kissfft
+ *
+ *  SPDX-License-Identifier: BSD-3-Clause
+ *  See COPYING file for more information.
+ */
 #include "../_kiss_fft_guts.h"
+#include "exlib.ispc"
 
 struct ispc_cpx {
     kiss_fft_scalar r;
     kiss_fft_scalar i;
 };
 
-#if 1
+#if 0
 #define QUALIFIER uniform
 #else 
 #define QUALIFIER 
 #endif
 
-inline void mul(QUALIFIER ispc_cpx &m, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
+inline void mul(QUALIFIER ispc_cpx &m, const QUALIFIER ispc_cpx &a, const QUALIFIER ispc_cpx &b) {
     m.r = a.r * b.r - a.i * b.i;
     m.i = a.r * b.i + a.i * b.r;
 }
 
-inline void sub(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
+inline void sub(QUALIFIER ispc_cpx &res, const QUALIFIER ispc_cpx &a, const QUALIFIER ispc_cpx &b) {
     res.r = a.r - b.r;
     res.i = a.i - b.i;
 }
 
-inline void add(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
+inline void add(QUALIFIER ispc_cpx &res, const QUALIFIER ispc_cpx &a, const QUALIFIER ispc_cpx &b) {
     res.r = a.r + b.r;
     res.i = a.i + b.i;
 }
 
-inline void addto(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a) {
+inline void addto(QUALIFIER ispc_cpx &res, const QUALIFIER ispc_cpx &a) {
     res.r += a.r;
     res.i += a.i;
 }
 
-inline void sum_sa(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
+inline void sum_sa(QUALIFIER ispc_cpx &res, const QUALIFIER ispc_cpx &a, const QUALIFIER ispc_cpx &b) {
     res.r = a.r - b.i;
     res.i = a.i + b.r;
 }
 
-inline void sum_as(QUALIFIER ispc_cpx &res, QUALIFIER ispc_cpx a, QUALIFIER ispc_cpx b) {
+inline void sum_as(QUALIFIER ispc_cpx &res, const QUALIFIER ispc_cpx &a, const QUALIFIER ispc_cpx &b) {
     res.r = a.r + b.i;
     res.i = a.i - b.r;
 }
@@ -90,28 +98,44 @@ export void ispc_bfly2(
 }
 
 export void ispc_bfly4(
-        ispc_cpx * uniform Fout,
+        uniform ispc_cpx * uniform Fout,
         uniform const size_t fstride,
-        ispc_state * uniform st,
+        uniform ispc_state * uniform st,
         uniform int m
         )
 {
-    ispc_cpx * uniform tw = st->twiddles;
+    uniform ispc_cpx * uniform tw = st->twiddles;
     ispc_cpx scratch[6];
-    const size_t m2=2*m;
-    const size_t m3=3*m;
+    const uniform size_t m2=2*m;
+    const uniform size_t m3=3*m;
 
-#if 0
-    foreach (i = 1 ... m) {
+    uniform int Chunk = 1;
+
+    print("test: %\n", TARGET_WIDTH);
+
+#if 1
+    foreach (i = 1 ... m) 
+    {
+        uniform float *uniform F = (uniform float *uniform)&Fout[Chunk];
+        uniform float *uniform Fm = (uniform float *uniform)&Fout[Chunk+m];
+        uniform float *uniform Fm2 = (uniform float *uniform)&Fout[Chunk+m2];
+        uniform float *uniform Fm3 = (uniform float *uniform)&Fout[Chunk+m3];
+
+        uniform float *uniform t1 = (uniform float *uniform)&tw[fstride * Chunk];
+        uniform float *uniform t2 = (uniform float *uniform)&tw[fstride * 2 * Chunk];
+        uniform float *uniform t3 = (uniform float *uniform)&tw[fstride * 3 * Chunk];
+
         // TODO: support FIXED_POINT
         //C_FIXDIV(*Fout,4); C_FIXDIV(Fout[m],4); C_FIXDIV(Fout[m2],4); C_FIXDIV(Fout[m3],4);
-        ispc_cpx t_out = Fout[i];
-        ispc_cpx t_out1 = Fout[m + i];
-        ispc_cpx t_out2 = Fout[m2 + i];
-        ispc_cpx t_out3 = Fout[m3 + i];
-        ispc_cpx t_1 = tw[fstride * i];
-        ispc_cpx t_2 = tw[fstride * 2 * i];
-        ispc_cpx t_3 = tw[fstride * 3 * i];
+        ispc_cpx t_out, t_out1, t_out2, t_out3, t_1, t_2, t_3;
+        aos_to_soa2(F, &t_out.r, &t_out.i);
+        aos_to_soa2(Fm, &t_out1.r, &t_out1.i);
+        aos_to_soa2(Fm2, &t_out2.r, &t_out2.i);
+        aos_to_soa2(Fm3, &t_out3.r, &t_out3.i);
+
+        aos_to_soa2(t1, &t_1.r, &t_1.i);
+        aos_to_soa2(t2, &t_2.r, &t_2.i);
+        aos_to_soa2(t3, &t_3.r, &t_3.i);
 
         mul(scratch[0], t_out1, t_1);
         mul(scratch[1], t_out2, t_2);
@@ -130,10 +154,13 @@ export void ispc_bfly4(
             sum_as(t_out1, scratch[5], scratch[4]);
             sum_sa(t_out3, scratch[5], scratch[4]);
         }
-        Fout[i] = t_out;
-        Fout[m + i] = t_out1;
-        Fout[m2 + i] = t_out2;
-        Fout[m3 + i] = t_out3;
+
+        soa_to_aos2(t_out.r, t_out.i, F);
+        soa_to_aos2(t_out1.r, t_out1.i, Fm);
+        soa_to_aos2(t_out2.r, t_out2.i, Fm2);
+        soa_to_aos2(t_out3.r, t_out3.i, Fm3);
+
+        Chunk += programCount;
     }
 #else 
     ispc_cpx * uniform tw;
