@@ -50,3 +50,6 @@ tools/fft_simd
 /ispc/kiss_fft_ispc.h
 /ispc/test_ispc.h
 /test/testispc
+.vs
+Debug
+Release
