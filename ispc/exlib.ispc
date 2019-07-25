@@ -1,3 +1,10 @@
+/*
+ *  Copyright (c) 2003-2010, Mark Borgerding. All rights reserved.
+ *  This file is part of KISS FFT - https://github.com/mborgerding/kissfft
+ *
+ *  SPDX-License-Identifier: BSD-3-Clause
+ *  See COPYING file for more information.
+ */
 inline void aos_to_soa2(const uniform float *uniform SrcPtr, 
                 varying float * uniform v0,
                 varying float * uniform v1)

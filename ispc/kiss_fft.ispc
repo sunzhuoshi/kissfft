@@ -63,21 +63,35 @@ export void ispc_bfly2(
         uniform int m
         )
 {
-#if 0
+#if 1
+    ispc_cpx * uniform Fout2 = Fout + m;
+    ispc_cpx * uniform tw = st->twiddles;
+
+    uniform int chunk = 0;
+    uniform int twChunk = 0;
     foreach (i = 0 ... m-1 ) {
-        ispc_cpx t_i = st->twiddles[i * fstride];
-        ispc_cpx t_out2 = Fout[m + i];
-        ispc_cpx t_out = Fout[i];
+        ispc_cpx t_i;
+        ispc_cpx t_out2;
+        ispc_cpx t_out;
         ispc_cpx t;
         
+        uniform float *uniform twi = (uniform float *uniform)&tw[twChunk];
+        uniform float *uniform F = (uniform float *uniform)&Fout[chunk];
+        uniform float *uniform Fm = (uniform float *uniform)&Fout2[chunk];
+
+        aos_to_soa2(twi, &t_i.r, &t_i.i);
+        aos_to_soa2(F, &t_out.r, &t_out.i);
+        aos_to_soa2(Fm, &t_out2.r, &t_out2.i);
         // TODO: support FIXED_POINT
         // C_FIXDIV(*Fout,2); C_FIXDIV(*Fout2,2);
         mul(t, t_out2, t_i);
         sub(t_out2, t_out, t);
         addto(t_out,  t);
 
-        Fout[i] = t_out;
-        Fout[m+i] = t_out2;
+        soa_to_aos2(t_out.r, t_out.i, F);
+        soa_to_aos2(t_out2.r, t_out.i, Fm);
+        chunk += programCount;
+        twChunk += fstride * programCount;
     }
 #else
     ispc_cpx * uniform Fout2;
@@ -104,17 +118,15 @@ export void ispc_bfly4(
         uniform int m
         )
 {
+#if 0
     uniform ispc_cpx * uniform tw = st->twiddles;
     ispc_cpx scratch[6];
     const uniform size_t m2=2*m;
     const uniform size_t m3=3*m;
 
-    uniform int Chunk = 1;
+    uniform int Chunk = 0;
 
-    print("test: %\n", TARGET_WIDTH);
-
-#if 1
-    foreach (i = 1 ... m) 
+    foreach (i = 0 ... m-1) 
     {
         uniform float *uniform F = (uniform float *uniform)&Fout[Chunk];
         uniform float *uniform Fm = (uniform float *uniform)&Fout[Chunk+m];
@@ -163,6 +175,7 @@ export void ispc_bfly4(
         Chunk += programCount;
     }
 #else 
+    /*
     ispc_cpx * uniform tw;
     ispc_cpx uniform scratch[6];
     const uniform size_t m2=2*m;
@@ -203,6 +216,46 @@ export void ispc_bfly4(
         Fout[m2 + i] = t_out2;
         Fout[m3 + i] = t_out3;
     }
+    */
+    ispc_cpx * uniform tw1,* uniform tw2,* uniform tw3;
+    ispc_cpx uniform scratch[6];
+    uniform size_t k=m;
+    const uniform size_t m2=2*m;
+    const uniform size_t m3=3*m;
+
+
+    tw3 = tw2 = tw1 = st->twiddles;
+
+    do {
+        C_FIXDIV(*Fout,4); C_FIXDIV(Fout[m],4); C_FIXDIV(Fout[m2],4); C_FIXDIV(Fout[m3],4);
+
+        C_MUL(scratch[0],Fout[m] , *tw1 );
+        C_MUL(scratch[1],Fout[m2] , *tw2 );
+        C_MUL(scratch[2],Fout[m3] , *tw3 );
+
+        C_SUB( scratch[5] , *Fout, scratch[1] );
+        C_ADDTO(*Fout, scratch[1]);
+        C_ADD( scratch[3] , scratch[0] , scratch[2] );
+        C_SUB( scratch[4] , scratch[0] , scratch[2] );
+        C_SUB( Fout[m2], *Fout, scratch[3] );
+        tw1 += fstride;
+        tw2 += fstride*2;
+        tw3 += fstride*3;
+        C_ADDTO( *Fout , scratch[3] );
+
+        if(st->inverse) {
+            Fout[m].r = scratch[5].r - scratch[4].i;
+            Fout[m].i = scratch[5].i + scratch[4].r;
+            Fout[m3].r = scratch[5].r + scratch[4].i;
+            Fout[m3].i = scratch[5].i - scratch[4].r;
+        }else{
+            Fout[m].r = scratch[5].r + scratch[4].i;
+            Fout[m].i = scratch[5].i - scratch[4].r;
+            Fout[m3].r = scratch[5].r - scratch[4].i;
+            Fout[m3].i = scratch[5].i + scratch[4].r;
+        }
+        ++Fout;
+    }while(--k);
 #endif
 }
 

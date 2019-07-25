@@ -12,6 +12,9 @@ asm:
 cpp:
 	ispc $(TARGET) $(TYPEFLAGS) kiss_fft.ispc -o kiss_fft_ispc.cpp --emit-c++ --target=generic-4
 
+test:
+	ispc $(TARGET) $(TYPEFLAGS) test.ispc -h test_ispc.h -o test_ispc.o 
+
 clean:
-	rm -rf kiss_fft_ispc.h 
+	rm -rf kiss_fft_ispc.h test_ispc.h
 	rm -rf *.o

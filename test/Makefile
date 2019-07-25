@@ -79,7 +79,7 @@ tools:
 ispc:
 	make -C ispc TYPEFLAGS=$(TYPEFLAGS) 
 
-../ispc_kiss_fft_ispc.o: ispc
+../ispc/kiss_fft_ispc.o: ispc
 
 $(SELFTEST): $(SELFTESTSRC) $(SRCFILES)
 	$(CC) -o $@ $(CFLAGS) $(TYPEFLAGS) $+ -lm 
@@ -113,6 +113,12 @@ CXXFLAGS=-O3 -ffast-math -fomit-frame-pointer  -I.. -I../tools -W -Wall -march=n
 testcpp: testcpp.cc ../kissfft.hh
 	$(CXX) -o $@ $(CXXFLAGS) testcpp.cc -lm
 
+ispc_test:
+	make -C ../ispc test 
+
+testispc: ispc.c ispc_test
+	$(CC) -o $@ $(CXXFLAGS) -DUSE_ISPC=1 ispc.c ../ispc/test_ispc.o
+
 clean:
-	rm -f *~ bm_* st_* tr_* kf_* tkfc_* ff_* ffr_* *.pyc *.pyo *.dat testcpp
+	rm -f *~ bm_* st_* tr_* kf_* tkfc_* ff_* ffr_* *.pyc *.pyo *.dat testcpp testispc
 	make -C ../tools clean

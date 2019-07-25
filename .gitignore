@@ -48,3 +48,5 @@ tools/fft_simd
 .vscode
 /ispc/test.ispc
 /ispc/kiss_fft_ispc.h
+/ispc/test_ispc.h
+/test/testispc
