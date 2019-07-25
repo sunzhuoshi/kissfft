@@ -11,10 +11,12 @@ export void ispc_test_soa2aos2(
     uniform int m
 ) {
     uniform int chunk = 0;
-    foreach (i=0 ... m-1) {
-        ispc_cpx t;
+    ispc_cpx t;
+
+    foreach (i=0 ... m) {
         float *uniform p = (float *uniform)&buf[chunk];
         aos_to_soa2(p, &t.r, &t.i);
         soa_to_aos2(t.r, t.i, p);
+		chunk += programCount;
     }
 }

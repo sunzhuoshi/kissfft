@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <xmmintrin.h>
 #include "../_kiss_fft_guts.h"
 
 #if USE_ISPC
@@ -7,7 +8,7 @@
 
 void print_debug(kiss_fft_cpx *buf, int m);
 kiss_fft_scalar rand_scalar();
-void test_aos2();
+void test_soa2aos2();
 
 void print_debug(kiss_fft_cpx *buf, int m) {
     for (int i=0; i<m; ++i) {
@@ -25,10 +26,10 @@ kiss_fft_scalar rand_scalar() {
 #endif 
 }
 
-void test_aos2() 
+void test_soa2aos2() 
 {
     int m = 16;
-    kiss_fft_cpx *buf = malloc(sizeof(kiss_fft_cpx) * m);
+    kiss_fft_cpx *buf = _mm_malloc(sizeof(kiss_fft_cpx) * m, 16);
     for (int i=0; i<m; ++i) {
         buf[i].r = rand_scalar();
         buf[i].i = rand_scalar();
@@ -46,7 +47,7 @@ void test_aos2()
 int main() {
     srand(0);
 #if USE_ISPC
-    test_aos2();
+	test_soa2aos2();
 #else 
     fprintf(stderr, "To test, please build with -DUSE_ISPC=1");
 #endif
