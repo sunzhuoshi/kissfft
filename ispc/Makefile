@@ -3,17 +3,20 @@ TARGET=--target=avx2-i32x16
 #TARGET=--target=sse4-i32x8
 #TARGET=--target=sse4-i32x4
 
+#FLAGS=-O0 -g
+FLAGS=-O3
+
 all:
-	ispc $(TARGET) $(TYPEFLAGS) kiss_fft.ispc -h kiss_fft_ispc.h -o kiss_fft_ispc.o 
+	ispc $(TARGET) $(TYPEFLAGS) $(FLAGS) kiss_fft.ispc -h kiss_fft_ispc.h -o kiss_fft_ispc.o 
 
 asm:
-	ispc $(TARGET) $(TYPEFLAGS) kiss_fft.ispc -o kiss_fft_ispc.asm --emit-asm
+	ispc $(TARGET) $(TYPEFLAGS) $(FLAGS) kiss_fft.ispc -o kiss_fft_ispc.asm --emit-asm
 
 cpp:
-	ispc $(TARGET) $(TYPEFLAGS) kiss_fft.ispc -o kiss_fft_ispc.cpp --emit-c++ --target=generic-4
+	ispc $(TARGET) $(TYPEFLAGS) $(FLAGS) kiss_fft.ispc -o kiss_fft_ispc.cpp --emit-c++ --target=generic-4
 
 test:
-	ispc $(TARGET) $(TYPEFLAGS) test.ispc -h test_ispc.h -o test_ispc.o 
+	ispc $(TARGET) $(TYPEFLAGS) $(FLAGS) test.ispc -h test_ispc.h -o test_ispc.o 
 
 clean:
 	rm -rf kiss_fft_ispc.h test_ispc.h
