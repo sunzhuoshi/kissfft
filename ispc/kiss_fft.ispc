@@ -68,16 +68,15 @@ export void ispc_bfly2(
     ispc_cpx * uniform tw = st->twiddles;
 
     uniform int chunk = 0;
-    uniform int twChunk = 0;
     foreach (i = 0 ... m ) {
         ispc_cpx t_i;
         ispc_cpx t_out2;
         ispc_cpx t_out;
         ispc_cpx t;
         
-        uniform float *uniform twi = (uniform float *uniform)&tw[twChunk];
-        uniform float *uniform F = (uniform float *uniform)&Fout[chunk];
-        uniform float *uniform Fm = (uniform float *uniform)&Fout2[chunk];
+        float *uniform twi = (float *uniform)&tw[chunk * fstride];
+        float *uniform F = (float *uniform)&Fout[chunk];
+        float *uniform Fm = (float *uniform)&Fout2[chunk];
 
         aos_to_soa2(twi, &t_i.r, &t_i.i);
         aos_to_soa2(F, &t_out.r, &t_out.i);
@@ -91,7 +90,6 @@ export void ispc_bfly2(
         soa_to_aos2(t_out.r, t_out.i, F);
         soa_to_aos2(t_out2.r, t_out.i, Fm);
         chunk += programCount;
-        twChunk += fstride * programCount;
     }
 #else
     ispc_cpx * uniform Fout2;
