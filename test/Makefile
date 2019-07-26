@@ -65,7 +65,7 @@ endif
 ISPC_OBJS=
 ifeq ($(USE_ISPC), 1)
  ISPC_OBJS=../ispc/kiss_fft_ispc.o
- TYPEFLAGS+=-DUSE_ISPC=1
+ CFLAGS+= -DUSE_ISPC=1
 endif
 
 SRCFILES=../kiss_fft.c $(ISPC_OBJS) ../tools/kiss_fftnd.c ../tools/kiss_fftr.c pstats.c ../tools/kfc.c ../tools/kiss_fftndr.c
@@ -73,11 +73,11 @@ SRCFILES=../kiss_fft.c $(ISPC_OBJS) ../tools/kiss_fftnd.c ../tools/kiss_fftr.c p
 all: tools $(BENCHKISS) $(SELFTEST) $(BENCHFFTW) $(TESTREAL) $(TESTKFC)
 
 tools:
-	cd ../tools && make all TYPEFLAGS="$(TYPEFLAGS)"
+	make -C ../tools TYPEFLAGS="$(TYPEFLAGS)"
 
 # force to generate ISPC file(s)
 ispc:
-	make -C ispc TYPEFLAGS=$(TYPEFLAGS) 
+	make -C ../ispc TYPEFLAGS=$(TYPEFLAGS) 
 
 ../ispc/kiss_fft_ispc.o: ispc
 
