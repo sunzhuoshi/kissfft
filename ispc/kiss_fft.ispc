@@ -69,7 +69,7 @@ export void ispc_bfly2(
 
     uniform int chunk = 0;
     uniform int twChunk = 0;
-    foreach (i = 0 ... m-1 ) {
+    foreach (i = 0 ... m ) {
         ispc_cpx t_i;
         ispc_cpx t_out2;
         ispc_cpx t_out;
