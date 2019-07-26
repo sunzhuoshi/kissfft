@@ -166,7 +166,7 @@ int main(int argc,char ** argv)
     kiss_fft_state = kiss_fft_alloc(nfft,1,0,0);
     kiss_fftr_state = kiss_fftr_alloc(nfft,1,0,0);
 
-    memset(cin,0,sizeof(cin));
+    memset(cin,0,sizeof(kiss_fft_cpx) * nfft);
 #if 1
     for (i=1;i< nfft/2;++i) {
         //cin[i].r = (kiss_fft_scalar)(rand()-RAND_MAX/2);
