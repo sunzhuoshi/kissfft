@@ -69,16 +69,14 @@ export void ispc_bfly2(
 
     uniform int chunk = 0;
     foreach (i = 0 ... m ) {
-        ispc_cpx t_i;
+        ispc_cpx t_i = tw[i * fstride];
         ispc_cpx t_out2;
         ispc_cpx t_out;
         ispc_cpx t;
         
-        float *uniform twi = (float *uniform)&tw[chunk * fstride];
         float *uniform F = (float *uniform)&Fout[chunk];
         float *uniform Fm = (float *uniform)&Fout2[chunk];
 
-        aos_to_soa2(twi, &t_i.r, &t_i.i);
         aos_to_soa2(F, &t_out.r, &t_out.i);
         aos_to_soa2(Fm, &t_out2.r, &t_out2.i);
         // TODO: support FIXED_POINT
