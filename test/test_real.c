@@ -7,26 +7,57 @@
  */
 #include "kiss_fftr.h"
 #include "_kiss_fft_guts.h"
+#ifdef _MSC_VER
+#include <windows.h>
+double Freq = 0.0;
+__int64 CounterStart = 0;
+#else
 #include <sys/times.h>
-#include <time.h>
 #include <unistd.h>
+#endif
+#include <time.h>
+
+static void init()
+{
+#ifdef _MSC_VER
+	LARGE_INTEGER li;
+	if (QueryPerformanceFrequency(&li)) {
+		Freq = li.QuadPart / 1000.0;
+
+		QueryPerformanceCounter(&li);
+		CounterStart = li.QuadPart;
+	}
+#endif
+	srand(time(0));
+}
 
 static double cputime(void)
 {
+#ifndef _MSC_VER
     struct tms t;
     times(&t);
     return (double)(t.tms_utime + t.tms_stime)/  sysconf(_SC_CLK_TCK) ;
+#else 
+	LARGE_INTEGER li;
+	QueryPerformanceCounter(&li);
+	return (li.QuadPart - CounterStart) / Freq;
+#endif
 }
 
 static
 kiss_fft_scalar rand_scalar(void) 
 {
+#if 0
 #ifdef USE_SIMD
     return _mm_set1_ps(rand()-RAND_MAX/2);
 #else
     kiss_fft_scalar s = (kiss_fft_scalar)(rand() -RAND_MAX/2);
     return s/2;
 #endif
+#else
+	static kiss_fft_scalar r = 0.f;
+	return ++r;
+#endif 
 }
 
 static
@@ -74,23 +105,23 @@ double snr_compare( kiss_fft_cpx * vec1,kiss_fft_cpx * vec2, int n)
 
 int main(int argc,char ** argv)
 {
-    int nfft = 8*3*5;
+	int nfft = 8 * 3 * 5;
     double ts,tfft,trfft;
     int i;
     if (argc>1)
         nfft = atoi(argv[1]);
-    kiss_fft_cpx cin[nfft];
-    kiss_fft_cpx cout[nfft];
-    kiss_fft_cpx sout[nfft];
+    kiss_fft_cpx * cin = malloc(sizeof(kiss_fft_cpx) * nfft);
+    kiss_fft_cpx * cout = malloc(sizeof(kiss_fft_cpx) * nfft);
+    kiss_fft_cpx * sout = malloc(sizeof(kiss_fft_cpx) * nfft);
     kiss_fft_cfg  kiss_fft_state;
     kiss_fftr_cfg  kiss_fftr_state;
 
-    kiss_fft_scalar rin[nfft+2];
-    kiss_fft_scalar rout[nfft+2];
+    kiss_fft_scalar * rin = malloc(sizeof(kiss_fft_scalar) * (nfft+2));
+    kiss_fft_scalar * rout = malloc(sizeof(kiss_fft_scalar) * (nfft + 2));;
     kiss_fft_scalar zero;
     memset(&zero,0,sizeof(zero) ); // ugly way of setting short,int,float,double, or __m128 to zero
 
-    srand(time(0));
+	init();
 
     for (i=0;i<nfft;++i) {
         rin[i] = rand_scalar();
@@ -102,8 +133,8 @@ int main(int argc,char ** argv)
     kiss_fftr_state = kiss_fftr_alloc(nfft,0,0,0);
     kiss_fft(kiss_fft_state,cin,cout);
     kiss_fftr(kiss_fftr_state,rin,sout);
-    /*
-    printf(" results from kiss_fft : (%f,%f), (%f,%f), (%f,%f) ...\n "
+#if 1
+	printf(" results from kiss_fft : (%f,%f), (%f,%f), (%f,%f) ...\n "
             , (float)cout[0].r , (float)cout[0].i
             , (float)cout[1].r , (float)cout[1].i
             , (float)cout[2].r , (float)cout[2].i); 
@@ -111,8 +142,7 @@ int main(int argc,char ** argv)
             , (float)sout[0].r , (float)sout[0].i
             , (float)sout[1].r , (float)sout[1].i
             , (float)sout[2].r , (float)sout[2].i); 
-    */
-        
+#endif        
     printf( "nfft=%d, inverse=%d, snr=%g\n",
             nfft,0, snr_compare(cout,sout,(nfft/2)+1) );
     ts = cputime();
@@ -157,14 +187,14 @@ int main(int argc,char ** argv)
 
     kiss_fft(kiss_fft_state,cin,cout);
     kiss_fftri(kiss_fftr_state,cin,rout);
-    /*
-    printf(" results from inverse kiss_fft : (%f,%f), (%f,%f), (%f,%f), (%f,%f), (%f,%f) ...\n "
+#if 1
+	printf(" results from inverse kiss_fft : (%f,%f), (%f,%f), (%f,%f), (%f,%f), (%f,%f) ...\n "
             , (float)cout[0].r , (float)cout[0].i , (float)cout[1].r , (float)cout[1].i , (float)cout[2].r , (float)cout[2].i , (float)cout[3].r , (float)cout[3].i , (float)cout[4].r , (float)cout[4].i
             ); 
 
     printf(" results from inverse kiss_fftr: %f,%f,%f,%f,%f ... \n"
             ,(float)rout[0] ,(float)rout[1] ,(float)rout[2] ,(float)rout[3] ,(float)rout[4]);
-*/
+#endif
     for (i=0;i<nfft;++i) {
         sout[i].r = rout[i];
         sout[i].i = zero;
@@ -174,6 +204,12 @@ int main(int argc,char ** argv)
             nfft,1, snr_compare(cout,sout,nfft/2) );
     free(kiss_fft_state);
     free(kiss_fftr_state);
+
+	free(cin);
+	free(cout);
+	free(rin);
+	free(rout);
+	free(sout);
 
     return 0;
 }
