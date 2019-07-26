@@ -4,6 +4,11 @@ WARNINGS=-W -Wall -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return \
 
 #WARNINGS+=-Wcast-align
 
+#CFLAGS=-Wall -O3 -pedantic -march=pentiumpro -ffast-math -fomit-frame-pointer $(WARNINGS)
+# If the above flags do not work, try the following
+CFLAGS=-Wall -O3 $(WARNINGS) 
+# tip: try -openmp or -fopenmp to use multiple cores
+
 ifeq "$(DATATYPE)" ""
  DATATYPE=float
 endif
@@ -25,7 +30,7 @@ ifeq "$(TYPEFLAGS)"  ""
 endif
 
 ifneq ("$(KISS_FFT_USE_ALLOCA)","")
-	CFLAGS+= -DKISS_FFT_USE_ALLOCA=1
+ CFLAGS+= -DKISS_FFT_USE_ALLOCA=1
 endif 
 CFLAGS+= $(CFLAGADD)
 
@@ -42,17 +47,12 @@ endif
 ISPC_OBJS=
 ifeq ($(USE_ISPC), 1)
  ISPC_OBJS=../ispc/kiss_fft_ispc.o
- TYPEFLAGS+=-DUSE_ISPC=1
+ CFLAGS+= -DUSE_ISPC=1
 endif
 
 all: $(FFTUTIL) $(FASTFILT) $(FASTFILTREAL) 
 # 	$(PSDPNG) 
 #	$(DUMPHDR)
-
-#CFLAGS=-Wall -O3 -pedantic -march=pentiumpro -ffast-math -fomit-frame-pointer $(WARNINGS)
-# If the above flags do not work, try the following
-CFLAGS=-Wall -O3 $(WARNINGS) 
-# tip: try -openmp or -fopenmp to use multiple cores
 
 # force to generate ISPC file(s)
 ispc:
