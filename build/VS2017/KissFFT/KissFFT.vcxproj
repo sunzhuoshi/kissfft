@@ -25,6 +25,14 @@
     <ClCompile Include="..\..\..\tools\kiss_fftndr.c" />
     <ClCompile Include="..\..\..\tools\kiss_fftr.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\ispc\exlib.ispc" />
+    <None Include="..\..\..\ispc\kiss_fft.ispc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\kiss_fft.h" />
+    <ClInclude Include="..\..\..\kiss_fft_def.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{4D813FAB-D417-4D18-B640-0F476F385338}</ProjectGuid>
