@@ -18,14 +18,23 @@
     <ClCompile Include="..\..\..\test\ispc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\test\orig.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Object Include="..\..\..\ispc\test_ispc.o">
       <Filter>Source Files</Filter>
     </Object>
+    <Object Include="..\..\..\ispc\kiss_fft_ispc.o">
+      <Filter>Source Files</Filter>
+    </Object>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ispc\test_ispc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\test\orig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

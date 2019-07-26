@@ -20,16 +20,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\test\ispc.c" />
+    <ClCompile Include="..\..\..\test\orig.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\ispc\Makefile" />
     <None Include="..\..\..\ispc\test.ispc" />
   </ItemGroup>
   <ItemGroup>
+    <Object Include="..\..\..\ispc\kiss_fft_ispc.o" />
     <Object Include="..\..\..\ispc\test_ispc.o" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ispc\test_ispc.h" />
+    <ClInclude Include="..\..\..\test\orig.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -110,7 +113,8 @@
     </Link>
     <PreBuildEvent>
       <Command>cd ..\..\..\ispc
-nmake test</Command>
+nmake test
+nmake all</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -128,7 +132,8 @@ nmake test</Command>
     </Link>
     <PreBuildEvent>
       <Command>cd ..\..\..\ispc
-nmake test</Command>
+nmake test
+nmake all</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -150,7 +155,8 @@ nmake test</Command>
     </Link>
     <PreBuildEvent>
       <Command>cd ..\..\..\ispc
-nmake test</Command>
+nmake test
+nmake all</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -172,7 +178,8 @@ nmake test</Command>
     </Link>
     <PreBuildEvent>
       <Command>cd ..\..\..\ispc
-nmake test</Command>
+nmake test
+nmake all</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
