@@ -120,18 +120,19 @@ export void ispc_bfly4(
 {
 #if 1
     ispc_cpx * uniform tw = st->twiddles;
+    ispc_cpx * uniform Fout_m = Fout + m;
+    ispc_cpx * uniform Fout_m2 = Fout + m * 2;
+    ispc_cpx * uniform Fout_m3 = Fout + m * 3;
     ispc_cpx scratch[6];
-    const uniform size_t m2=2*m;
-    const uniform size_t m3=3*m;
 
-    uniform int Chunk = 0;
+    uniform int chunk = 0;
 
     foreach (i = 0 ... m) 
     {
-        float *uniform F = (float *uniform)&Fout[Chunk];
-        float *uniform Fm = (float *uniform)&Fout[Chunk+m];
-        float *uniform Fm2 = (float *uniform)&Fout[Chunk+m2];
-        float *uniform Fm3 = (float *uniform)&Fout[Chunk+m3];
+        float *uniform F = (float *uniform)&Fout[chunk];
+        float *uniform Fm = (float *uniform)&Fout_m[chunk];
+        float *uniform Fm2 = (float *uniform)&Fout_m2[chunk];
+        float *uniform Fm3 = (float *uniform)&Fout_m3[chunk];
 
         // TODO: support FIXED_POINT
         //C_FIXDIV(*Fout,4); C_FIXDIV(Fout[m],4); C_FIXDIV(Fout[m2],4); C_FIXDIV(Fout[m3],4);
@@ -169,7 +170,7 @@ export void ispc_bfly4(
         soa_to_aos2(t_out2.r, t_out2.i, Fm2);
         soa_to_aos2(t_out3.r, t_out3.i, Fm3);
 
-        Chunk += programCount;
+        chunk += programCount;
     }
 #else 
     ispc_cpx * uniform tw;
