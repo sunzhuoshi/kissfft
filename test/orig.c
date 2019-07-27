@@ -6,7 +6,7 @@
  *  See COPYING file for more information.
  */
 #include "orig.h"
-#include "..\_kiss_fft_guts.h"
+#include "../_kiss_fft_guts.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -85,13 +85,14 @@ void kf_bfly2(
 	kiss_fft_cpx * Fout,
 	const size_t fstride,
 	const kiss_fft_cfg st,
-	int m
+	const size_t m
 )
 {
 	kiss_fft_cpx * Fout2;
 	kiss_fft_cpx * tw1 = st->twiddles;
 	kiss_fft_cpx t;
 	Fout2 = Fout + m;
+	size_t k = m;
 	do {
 		C_FIXDIV(*Fout, 2); C_FIXDIV(*Fout2, 2);
 
@@ -101,7 +102,7 @@ void kf_bfly2(
 		C_ADDTO(*Fout, t);
 		++Fout2;
 		++Fout;
-	} while (--m);
+	} while (--k);
 }
 
 void kf_bfly4(
