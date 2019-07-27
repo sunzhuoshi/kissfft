@@ -63,12 +63,16 @@ export void ispc_bfly2(
         uniform int m
         )
 {
-#if 1
+// it seems that no obvious performance gain vs. scalar ISPC code
+// need to be double confirmed with more benchmark
+#if 0
     ispc_cpx * uniform Fout2 = Fout + m;
     ispc_cpx * uniform tw = st->twiddles;
 
     uniform int chunk = 0;
     foreach (i = 0 ... m ) {
+// no better solution, just ignore perf warning
+#pragma ignore warning(perf)	        
         ispc_cpx t_i = tw[i * fstride];
         ispc_cpx t_out2;
         ispc_cpx t_out;
@@ -108,46 +112,43 @@ export void ispc_bfly2(
 }
 
 export void ispc_bfly4(
-        uniform ispc_cpx * uniform Fout,
+        ispc_cpx * uniform Fout,
         uniform const size_t fstride,
-        uniform ispc_state * uniform st,
+        ispc_state * uniform st,
         uniform int m
         )
 {
-#if 0
-    uniform ispc_cpx * uniform tw = st->twiddles;
+#if 1
+    ispc_cpx * uniform tw = st->twiddles;
     ispc_cpx scratch[6];
     const uniform size_t m2=2*m;
     const uniform size_t m3=3*m;
 
     uniform int Chunk = 0;
 
-    foreach (i = 0 ... m-1) 
+    foreach (i = 0 ... m) 
     {
-        uniform float *uniform F = (uniform float *uniform)&Fout[Chunk];
-        uniform float *uniform Fm = (uniform float *uniform)&Fout[Chunk+m];
-        uniform float *uniform Fm2 = (uniform float *uniform)&Fout[Chunk+m2];
-        uniform float *uniform Fm3 = (uniform float *uniform)&Fout[Chunk+m3];
-
-        uniform float *uniform t1 = (uniform float *uniform)&tw[fstride * Chunk];
-        uniform float *uniform t2 = (uniform float *uniform)&tw[fstride * 2 * Chunk];
-        uniform float *uniform t3 = (uniform float *uniform)&tw[fstride * 3 * Chunk];
+        float *uniform F = (float *uniform)&Fout[Chunk];
+        float *uniform Fm = (float *uniform)&Fout[Chunk+m];
+        float *uniform Fm2 = (float *uniform)&Fout[Chunk+m2];
+        float *uniform Fm3 = (float *uniform)&Fout[Chunk+m3];
 
         // TODO: support FIXED_POINT
         //C_FIXDIV(*Fout,4); C_FIXDIV(Fout[m],4); C_FIXDIV(Fout[m2],4); C_FIXDIV(Fout[m3],4);
-        ispc_cpx t_out, t_out1, t_out2, t_out3, t_1, t_2, t_3;
+        ispc_cpx t_out, t_out1, t_out2, t_out3;
+        ispc_cpx t_1 = tw[i * fstride], 
+            t_2 = tw[i * fstride * 2],
+            t_3 = tw[i * fstride * 3];
+
         aos_to_soa2(F, &t_out.r, &t_out.i);
         aos_to_soa2(Fm, &t_out1.r, &t_out1.i);
         aos_to_soa2(Fm2, &t_out2.r, &t_out2.i);
         aos_to_soa2(Fm3, &t_out3.r, &t_out3.i);
 
-        aos_to_soa2(t1, &t_1.r, &t_1.i);
-        aos_to_soa2(t2, &t_2.r, &t_2.i);
-        aos_to_soa2(t3, &t_3.r, &t_3.i);
-
         mul(scratch[0], t_out1, t_1);
         mul(scratch[1], t_out2, t_2);
         mul(scratch[2], t_out3, t_3);
+
         sub(scratch[5], t_out, scratch[1]);
         addto(t_out, scratch[1]);
         add(scratch[3], scratch[0], scratch[2]);
@@ -171,7 +172,6 @@ export void ispc_bfly4(
         Chunk += programCount;
     }
 #else 
-    /*
     ispc_cpx * uniform tw;
     ispc_cpx uniform scratch[6];
     const uniform size_t m2=2*m;
@@ -212,7 +212,7 @@ export void ispc_bfly4(
         Fout[m2 + i] = t_out2;
         Fout[m3 + i] = t_out3;
     }
-    */
+    /*
     ispc_cpx * uniform tw1,* uniform tw2,* uniform tw3;
     ispc_cpx uniform scratch[6];
     uniform size_t k=m;
@@ -252,6 +252,7 @@ export void ispc_bfly4(
         }
         ++Fout;
     }while(--k);
+    */
 #endif
 }
 
