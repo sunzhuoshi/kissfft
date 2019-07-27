@@ -9,6 +9,8 @@
 #include "../ispc/kiss_fft_ispc.h"
 #include "orig.h"
 
+#define NFFT 240 //8 * 3 * 5
+
 void print_debug(kiss_fft_cpx *buf, unsigned int m, unsigned int count) {
     for (unsigned int i=0; i<m && i<count; ++i) {
         printf("[%f, %f]\n", buf[i].r, buf[i].i);
@@ -69,7 +71,6 @@ void test_soa2aos2()
 
 void test_bfly2()
 {
-#define NFFT 120 //8 * 3 * 5
 	kiss_fft_cpx buf_c[NFFT];
 	kiss_fft_cpx buf_ispc[NFFT];
 	int fstride = 4;
@@ -91,12 +92,36 @@ void test_bfly2()
 	free(state_ispc);
 }
 
+void test_bfly4()
+{
+	kiss_fft_cpx buf_c[NFFT];
+	kiss_fft_cpx buf_ispc[NFFT];
+	int fstride = 1;
+	unsigned int m = 30;
+
+	kiss_fft_cfg state_c = kiss_fft_alloc(NFFT, 0, 0, 0);
+	kiss_fft_cfg state_ispc = kiss_fft_alloc(NFFT, 0, 0, 0);
+	for (int i = 0; i < NFFT; ++i) {
+		buf_c[i].r = buf_ispc[i].r = rand_scalar();
+		buf_c[i].i = buf_ispc[i].i = rand_scalar();
+	}
+	kf_bfly4(buf_c, fstride, state_c, m);
+	printf("### C ###\n");
+	print_debug(buf_c, NFFT, 16);
+	ispc_bfly4((struct ispc_cpx *)buf_ispc, fstride, (struct ispc_state *)state_ispc, m);
+	printf("### ISPC ###\n");
+	print_debug(buf_ispc, NFFT, 16);
+	free(state_c);
+	free(state_ispc);
+}
+
 #endif
 
 int main() {
     srand(0);
 #if USE_ISPC
-	test_bfly2();
+	//test_bfly2();
+	test_bfly4();
 	//test_soa2aos2();
 #else 
     fprintf(stderr, "To test, please build with -DUSE_ISPC=1");
