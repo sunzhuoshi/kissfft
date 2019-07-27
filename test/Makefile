@@ -120,6 +120,7 @@ ispc_test:
 
 testispc: ispc.c ispc_test
 	$(CC) -o $@ $(CXXFLAGS) $(TYPEFLAGS) -DUSE_ISPC=1 ispc.c orig.c ../ispc/test_ispc.o ../ispc/kiss_fft_ispc.o
+	./$@
 
 clean:
 	rm -f *~ bm_* st_* tr_* kf_* tkfc_* ff_* ffr_* *.pyc *.pyo *.dat testcpp testispc
