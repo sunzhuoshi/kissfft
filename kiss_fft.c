@@ -22,6 +22,7 @@ static void kf_bfly2(
         int m
         )
 {
+//    fprintf(stderr, "[bfly2] m: %d\n", m);
 #if USE_ISPC
     ispc_bfly2((struct ispc_cpx *)Fout, fstride, (struct ispc_state *)st, m);
 #else 
@@ -49,6 +50,7 @@ static void kf_bfly4(
         const size_t m
         )
 {
+    //fprintf(stderr, "[bfly4] m: %ld\n", m);    
 #if USE_ISPC
     ispc_bfly4((struct ispc_cpx *)Fout, fstride, (struct ispc_state *)st, m);
 #else
