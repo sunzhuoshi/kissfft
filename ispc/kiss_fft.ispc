@@ -70,7 +70,10 @@ export void ispc_bfly2(
     ispc_cpx * uniform tw = st->twiddles;
 
     uniform int chunk = 0;
-    foreach (i = 0 ... m ) {
+    uniform int ul = m % programCount;;
+    uniform int vl = m - ul;
+
+    foreach (i = 0 ... vl ) {
 // no better solution, just ignore perf warning
 #pragma ignore warning(perf)	        
         ispc_cpx t_i = tw[i * fstride];
@@ -90,8 +93,23 @@ export void ispc_bfly2(
         addto(t_out,  t);
 
         soa_to_aos2(t_out.r, t_out.i, F);
-        soa_to_aos2(t_out2.r, t_out.i, Fm);
+        soa_to_aos2(t_out2.r, t_out2.i, Fm);
         chunk += programCount;
+    }
+
+    // last part that can't paralleled
+    Fout += chunk;
+    Fout2 += chunk;
+    uniform ispc_cpx ut;
+    while (ul--) {
+        C_FIXDIV(*Fout,2); C_FIXDIV(*Fout2,2);
+
+        C_MUL (ut, *Fout2, *tw);
+        tw += fstride;
+        C_SUB(*Fout2,  *Fout, ut);
+        C_ADDTO(*Fout,  ut);
+        ++Fout2;
+        ++Fout;
     }
 #else
     ispc_cpx * uniform Fout2;
