@@ -49,7 +49,9 @@ double snr_compare(kiss_fft_cpx * vec1, kiss_fft_cpx * vec2, int n)
 	if (snr < 10) {
 		printf("\npoor snr, try a scaling factor %f\n", scale);
 		exit(1);
-	}
+	} else {
+        printf("snr: %f\n", scale);
+    }
 	return snr;
 }
 
