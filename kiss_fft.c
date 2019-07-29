@@ -101,6 +101,9 @@ static void kf_bfly3(
          size_t m
          )
 {
+#if USE_ISPC
+    ispc_bfly3((struct ispc_cpx *)Fout, fstride, (struct ispc_state *)st, m);
+#else    
      size_t k=m;
      const size_t m2 = 2*m;
      kiss_fft_cpx *tw1,*tw2;
@@ -136,6 +139,7 @@ static void kf_bfly3(
 
          ++Fout;
      }while(--k);
+#endif
 }
 
 static void kf_bfly5(
