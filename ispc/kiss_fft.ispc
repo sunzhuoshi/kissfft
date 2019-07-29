@@ -55,6 +55,8 @@ struct ispc_state {
     uniform ispc_cpx twiddles[1];
 };
 
+// scalar version of ispc_bfly2
+// also used to handle rear part of data loop
 inline void ispc_bfly2_scalar(
         ispc_cpx * uniform Fout,
         uniform const size_t fstride,
@@ -80,6 +82,7 @@ inline void ispc_bfly2_scalar(
     }    
 }
 
+// ispc version of kf_bfly2
 export void ispc_bfly2(
         ispc_cpx * uniform Fout,
         uniform const size_t fstride,
@@ -124,6 +127,8 @@ export void ispc_bfly2(
 #endif 
 }
 
+// scalar version of ispc_bfly4
+// also used to handle rear part of data loop
 inline void ispc_bfly4_scalar(
         ispc_cpx * uniform Fout,
         uniform const size_t fstride,
@@ -172,6 +177,7 @@ inline void ispc_bfly4_scalar(
     }
 }
 
+// ispc version of kf_bfly4
 export void ispc_bfly4(
         ispc_cpx * uniform Fout,
         uniform const size_t fstride,
@@ -239,6 +245,8 @@ export void ispc_bfly4(
 #endif
 }
 
+// scalar version of ispc_bfly3
+// also used to handle rear part of data loop
 export void ispc_bfly3_scalar(
     ispc_cpx * uniform Fout,
     uniform const size_t fstride,
@@ -283,6 +291,7 @@ export void ispc_bfly3_scalar(
      }
 }
 
+// ispc version of kf_bfly3
 export void ispc_bfly3(
     ispc_cpx * uniform Fout,
     uniform const size_t fstride,
@@ -358,6 +367,8 @@ inline void ispc_bfly5_scalar(
     }    
 }
 
+// scalar version of kf_bfly5
+// also used to handle rear part of data loop
 export void ispc_bfly5(
         ispc_cpx * uniform Fout,
         uniform const size_t fstride,
