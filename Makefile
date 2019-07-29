@@ -1,4 +1,4 @@
-# use "make testall USE_ISPC=1" to test ISPC version(experimental)
+# use "make testall USE_ISPC=1/2" to test ISPC version(experimental)
 KFVER=131
 TYPEFLAGS=-Dkiss_fft_scalar=float
 
@@ -9,8 +9,8 @@ endif
 ISPC_MAKE=@echo ""
 ISPC_OBJS=
 MAKE_SIMD=make -C test DATATYPE=simd CFLAGADD="$(CFLAGADD)" test
-ifeq ($(USE_ISPC), 1)
- ISPC_MAKE=make -C ispc TYPEFLAGS=$(TYPEFLAGS)
+ifneq ($(USE_ISPC), 0)
+ ISPC_MAKE=make -C ispc TYPEFLAGS=$(TYPEFLAGS) USE_ISPC=$(USE_ISPC)
  ISPC_OBJS=ispc/kiss_fft_ispc.o
  MAKE_SIMD=@echo "NOTE: no simd datatype support for ISPC"
 endif
@@ -41,8 +41,9 @@ testall:
 	# USE_ISPC: $(USE_ISPC)
 	make -C test testcpp && test/testcpp
 	$(MAKE_SIMD)
-	make -C test DATATYPE=int32_t CFLAGADD="$(CFLAGADD)" test
-	make -C test DATATYPE=int16_t CFLAGADD="$(CFLAGADD)" test
+	# NOTE: fixed point is not support with ISPC
+	#make -C test DATATYPE=int32_t CFLAGADD="$(CFLAGADD)" test
+	#make -C test DATATYPE=int16_t CFLAGADD="$(CFLAGADD)" test
 	make -C test DATATYPE=float CFLAGADD="$(CFLAGADD)" test
 	make -C test DATATYPE=double CFLAGADD="$(CFLAGADD)" test
 	echo "all tests passed"

@@ -45,9 +45,9 @@ ifeq "$(USE_ISPC)" ""
  USE_ISPC=0
 endif
 ISPC_OBJS=
-ifeq ($(USE_ISPC), 1)
+ifneq ($(USE_ISPC), 0)
  ISPC_OBJS=../ispc/kiss_fft_ispc.o
- CFLAGS+= -DUSE_ISPC=1
+ CFLAGS+= -DUSE_ISPC=$(USE_ISPC)
 endif
 
 all: $(FFTUTIL) $(FASTFILT) $(FASTFILTREAL) 

@@ -161,7 +161,7 @@ int main() {
     test_bfly5();
 	test_soa2aos2();
 #else 
-    fprintf(stderr, "To test, please build with -DUSE_ISPC=1");
+    fprintf(stderr, "To test, please build with -DUSE_ISPC=1/2");
 #endif
     return 0;
 }

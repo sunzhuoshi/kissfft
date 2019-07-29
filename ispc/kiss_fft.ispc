@@ -87,7 +87,7 @@ export void ispc_bfly2(
         uniform int m
         )
 {
-#if 1
+#if USE_ISPC == 1
     uniform int chunk = 0;
     ispc_cpx * uniform Fout2 = Fout + m;
     ispc_cpx * uniform tw = st->twiddles;
@@ -119,7 +119,7 @@ export void ispc_bfly2(
     }
     // rear part that can't vectorized
     ispc_bfly2_scalar(Fout + chunk, fstride, st, m, vl);
-#else
+#elif USE_ISPC == 2
     ispc_bfly2_scalar(Fout, fstride, st, m, 0);
 #endif 
 }
@@ -179,7 +179,7 @@ export void ispc_bfly4(
         uniform int m
         )
 {
-#if 1
+#if USE_ISPC == 1
     ispc_cpx * uniform tw = st->twiddles;
     ispc_cpx * uniform Fout_m = Fout + m;
     ispc_cpx * uniform Fout_m2 = Fout + m * 2;
@@ -234,7 +234,7 @@ export void ispc_bfly4(
         chunk += programCount;
     }
     ispc_bfly4_scalar(Fout + chunk, fstride, st, m, vl);
-#else 
+#elif USE_ISPC == 2
     ispc_bfly4_scalar(Fout, fstride, st, m, 0);
 #endif
 }
@@ -365,7 +365,7 @@ export void ispc_bfly5(
         uniform int m
         )
 {
-#if 1
+#if USE_ISPC == 1
     ispc_cpx * uniform Fout0 = Fout,
         * uniform Fout1 = Fout + m,
         * uniform Fout2 = Fout + m * 2,
@@ -381,10 +381,8 @@ export void ispc_bfly5(
     uniform int vl = m - ul;
 
     foreach (i = 0 ... vl ) {
-        ispc_cpx t_1 = tw[i * fstride], 
-            t_2 = tw[i * fstride * 2], 
-            t_3 = tw[i * fstride * 3], 
-            t_4 = tw[i * fstride * 4];
+#pragma ignore warning(perf)	        
+        ispc_cpx t_1 = tw[i * fstride], t_2 = tw[i * fstride * 2], t_3 = tw[i * fstride * 3], t_4 = tw[i * fstride * 4];
         ispc_cpx t_out0, t_out1, t_out2, t_out3, t_out4;
 
         kiss_fft_scalar *uniform F0 = (kiss_fft_scalar *uniform)&Fout0[chunk];
@@ -440,7 +438,7 @@ export void ispc_bfly5(
         chunk += programCount;
     }
     ispc_bfly5_scalar(Fout + chunk, fstride, st, m, vl);
-#else    
+#elif USE_ISPC == 2    
     ispc_bfly5_scalar(Fout, fstride, st, m, 0);
 #endif
 }
