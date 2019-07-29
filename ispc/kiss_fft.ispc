@@ -56,6 +56,29 @@ struct ispc_state {
     ispc_cpx twiddles[1];
 };
 
+inline void ispc_bfly2_scalar(
+        ispc_cpx * uniform Fout,
+        uniform const size_t fstride,
+        ispc_state * uniform st,
+        uniform int m
+        )
+{
+    ispc_cpx * uniform Fout2 = Fout + m;
+    ispc_cpx * uniform tw = st->twiddles;
+    uniform ispc_cpx t;
+
+    while (m--) {
+        C_FIXDIV(*Fout,2); C_FIXDIV(*Fout2,2);
+
+        C_MUL (t, *Fout2, *tw);
+        tw += fstride;
+        C_SUB(*Fout2,  *Fout, t);
+        C_ADDTO(*Fout,  t);
+        ++Fout2;
+        ++Fout;
+    }    
+}
+
 export void ispc_bfly2(
         ispc_cpx * uniform Fout,
         uniform const size_t fstride,
@@ -66,10 +89,10 @@ export void ispc_bfly2(
 // it seems that no obvious performance gain vs. scalar ISPC code
 // need to be double confirmed with more benchmark
 #if 0
+    uniform int chunk = 0;
     ispc_cpx * uniform Fout2 = Fout + m;
     ispc_cpx * uniform tw = st->twiddles;
 
-    uniform int chunk = 0;
     uniform int ul = m % programCount;;
     uniform int vl = m - ul;
 
@@ -97,35 +120,10 @@ export void ispc_bfly2(
         chunk += programCount;
     }
 
-    // last part that can't paralleled
-    Fout += chunk;
-    Fout2 += chunk;
-    uniform ispc_cpx ut;
-    while (ul--) {
-        C_FIXDIV(*Fout,2); C_FIXDIV(*Fout2,2);
-
-        C_MUL (ut, *Fout2, *tw);
-        tw += fstride;
-        C_SUB(*Fout2,  *Fout, ut);
-        C_ADDTO(*Fout,  ut);
-        ++Fout2;
-        ++Fout;
-    }
+    // last part that can't vectorized
+    ispc_bfly2_scalar(Fout + chunk, fstride, st, m);
 #else
-    ispc_cpx * uniform Fout2;
-    ispc_cpx * uniform tw1 = st->twiddles;
-    uniform ispc_cpx t;
-    Fout2 = Fout + m;
-    do{
-        C_FIXDIV(*Fout,2); C_FIXDIV(*Fout2,2);
-
-        C_MUL (t, *Fout2, *tw1);
-        tw1 += fstride;
-        C_SUB(*Fout2,  *Fout, t);
-        C_ADDTO(*Fout,  t);
-        ++Fout2;
-        ++Fout;
-    }while (--m);
+    ispc_bfly2_scalar(Fout, fstride, st, m);
 #endif 
 }
 
