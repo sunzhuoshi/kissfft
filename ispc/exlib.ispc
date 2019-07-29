@@ -5,9 +5,9 @@
  *  SPDX-License-Identifier: BSD-3-Clause
  *  See COPYING file for more information.
  */
-inline void aos_to_soa2(const uniform float *uniform SrcPtr, 
-                varying float * uniform v0,
-                varying float * uniform v1)
+inline void aos_to_soa2(const uniform kiss_fft_scalar *uniform SrcPtr, 
+                varying kiss_fft_scalar * uniform v0,
+                varying kiss_fft_scalar * uniform v1)
 {
 	// Convert to varying using the shuffle functions
 
@@ -27,11 +27,11 @@ inline void aos_to_soa2(const uniform float *uniform SrcPtr,
 	#error "Unknown ISPC_TARGET_* value"
 #endif
 
-	// Load in 2x gangs of floats.
+	// Load in 2x gangs of scalars.
 	// s1 = 0.r, 0.i, 1.r, 1.i, 2.r, 2.i, 3.r, 3.i
 	// s2 = 4.r, 4.i, 5.r, 5.i, 6.r, 6.i, 7.r, 7.i
-	const float S1 = SrcPtr[programIndex];
-	const float S2 = SrcPtr[programIndex+programCount];
+	const kiss_fft_scalar S1 = SrcPtr[programIndex];
+	const kiss_fft_scalar S2 = SrcPtr[programIndex+programCount];
 
 	// Shuffle inputs to get
 	//   r = 0.r, 1.r, 2.r, 3.r, 4.r, 5.r, 6.r, 7.r
@@ -40,9 +40,9 @@ inline void aos_to_soa2(const uniform float *uniform SrcPtr,
 	*v1 = shuffle(S1, S2, vPermi);
 }
 
-inline void soa_to_aos2(const varying float &S1,
-                 const varying float &S2,
-                 uniform float *uniform DstPtr)
+inline void soa_to_aos2(const varying kiss_fft_scalar &S1,
+                 const varying kiss_fft_scalar &S2,
+                 uniform kiss_fft_scalar *uniform DstPtr)
 {
 	// Convert from varying using the shuffle functions
 
