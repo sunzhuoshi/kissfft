@@ -47,17 +47,12 @@ static double cputime(void)
 static
 kiss_fft_scalar rand_scalar(void) 
 {
-#if 0
 #ifdef USE_SIMD
     return _mm_set1_ps(rand()-RAND_MAX/2);
 #else
     kiss_fft_scalar s = (kiss_fft_scalar)(rand() -RAND_MAX/2);
     return s/2;
 #endif
-#else
-	static kiss_fft_scalar r = 0.f;
-	return ++r;
-#endif 
 }
 
 static
@@ -133,7 +128,7 @@ int main(int argc,char ** argv)
     kiss_fftr_state = kiss_fftr_alloc(nfft,0,0,0);
     kiss_fft(kiss_fft_state,cin,cout);
     kiss_fftr(kiss_fftr_state,rin,sout);
-#if 1
+#if 0
 	printf(" results from kiss_fft : (%f,%f), (%f,%f), (%f,%f) ...\n "
             , (float)cout[0].r , (float)cout[0].i
             , (float)cout[1].r , (float)cout[1].i
@@ -187,7 +182,7 @@ int main(int argc,char ** argv)
 
     kiss_fft(kiss_fft_state,cin,cout);
     kiss_fftri(kiss_fftr_state,cin,rout);
-#if 1
+#if 0
 	printf(" results from inverse kiss_fft : (%f,%f), (%f,%f), (%f,%f), (%f,%f), (%f,%f) ...\n "
             , (float)cout[0].r , (float)cout[0].i , (float)cout[1].r , (float)cout[1].i , (float)cout[2].r , (float)cout[2].i , (float)cout[3].r , (float)cout[3].i , (float)cout[4].r , (float)cout[4].i
             ); 
