@@ -108,7 +108,7 @@ test: all
 	@./$(BENCHKISS) -x $(NUMFFTS) -n $(NFFT) 
 	@[ -x ./$(BENCHFFTW) ] && ./$(BENCHFFTW) -x $(NUMFFTS) -n $(NFFT) ||true
 	@echo "======higher dimensions type=$(DATATYPE))"
-	@python2.7 ./testkiss.py
+	@python ./testkiss.py
 
 CXXFLAGS=-O3 -ffast-math -fomit-frame-pointer  -I.. -I../tools -W -Wall -march=native -mtune=native
 testcpp: testcpp.cc ../kissfft.hh
