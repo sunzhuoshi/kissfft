@@ -75,24 +75,26 @@ void test_bfly2()
 {
 	kiss_fft_cpx buf_c[NFFT];
 	kiss_fft_cpx buf_ispc[NFFT];
-	int fstride = 4;
-	unsigned int m = 8;
+	int fstride = 1;
 
-	kiss_fft_cfg state_c = kiss_fft_alloc(NFFT, 0, 0, 0);
-	kiss_fft_cfg state_ispc = kiss_fft_alloc(NFFT, 0, 0, 0);
-	for (int i = 0; i < NFFT; ++i) {
-		buf_c[i].r = buf_ispc[i].r = rand_scalar();
-		buf_c[i].i = buf_ispc[i].i = rand_scalar();
-	}
-	kf_bfly2(buf_c, fstride, state_c, m);
-	printf("### bfly2(C) ###\n");
-	print_debug(buf_c, NFFT, 4);
-	ispc_bfly2((struct ispc_cpx *)buf_ispc, fstride, (struct ispc_state *)state_ispc, m);
-	printf("### bfly2(ISPC) ###\n");
-	print_debug(buf_ispc, NFFT, 4);
-    snr_compare(buf_c, buf_ispc, NFFT);
-	free(state_c);
-	free(state_ispc);
+    for (int i=-1; i<=1; ++i) {
+        int m = 16 + i;
+        kiss_fft_cfg state_c = kiss_fft_alloc(NFFT, 0, 0, 0);
+        kiss_fft_cfg state_ispc = kiss_fft_alloc(NFFT, 0, 0, 0);
+        for (int i = 0; i < NFFT; ++i) {
+            buf_c[i].r = buf_ispc[i].r = rand_scalar();
+            buf_c[i].i = buf_ispc[i].i = rand_scalar();
+        }
+        kf_bfly2(buf_c, fstride, state_c, m);
+        printf("\n### bfly2(m: %d, C) ###\n", m);
+        print_debug(buf_c, NFFT, m);
+        ispc_bfly2((struct ispc_cpx *)buf_ispc, fstride, (struct ispc_state *)state_ispc, m);
+        printf("\n### bfly2(m: %d, ISPC) ###\n", m);
+        print_debug(buf_ispc, NFFT, m);
+        snr_compare(buf_c, buf_ispc, m);
+        free(state_c);
+        free(state_ispc);
+    }
 }
 
 void test_bfly4()
@@ -100,23 +102,26 @@ void test_bfly4()
 	kiss_fft_cpx buf_c[NFFT];
 	kiss_fft_cpx buf_ispc[NFFT];
 	int fstride = 1;
-	unsigned int m = 30;
 
-	kiss_fft_cfg state_c = kiss_fft_alloc(NFFT, 0, 0, 0);
-	kiss_fft_cfg state_ispc = kiss_fft_alloc(NFFT, 0, 0, 0);
-	for (int i = 0; i < NFFT; ++i) {
-		buf_c[i].r = buf_ispc[i].r = rand_scalar();
-		buf_c[i].i = buf_ispc[i].i = rand_scalar();
-	}
-	kf_bfly4(buf_c, fstride, state_c, m);
-	printf("### bfly4(C) ###\n");
-	print_debug(buf_c, NFFT, 16);
-	ispc_bfly4((struct ispc_cpx *)buf_ispc, fstride, (struct ispc_state *)state_ispc, m);
-	printf("### bfly4(ISPC) ###\n");
-	print_debug(buf_ispc, NFFT, 16);
-    snr_compare(buf_c, buf_ispc, NFFT);
-	free(state_c);
-	free(state_ispc);
+    for (int i=-1; i<=1; ++i) {
+        int m = 16 + i;
+
+        kiss_fft_cfg state_c = kiss_fft_alloc(NFFT, 0, 0, 0);
+        kiss_fft_cfg state_ispc = kiss_fft_alloc(NFFT, 0, 0, 0);
+        for (int i = 0; i < NFFT; ++i) {
+            buf_c[i].r = buf_ispc[i].r = rand_scalar();
+            buf_c[i].i = buf_ispc[i].i = rand_scalar();
+        }
+        kf_bfly4(buf_c, fstride, state_c, m);
+        printf("\n### bfly4(m: %d, C) ###\n", m);
+        print_debug(buf_c, NFFT, m);
+        ispc_bfly4((struct ispc_cpx *)buf_ispc, fstride, (struct ispc_state *)state_ispc, m);
+        printf("\n### bfly4(m: %d, ISPC) ###\n", m);
+        print_debug(buf_ispc, NFFT, m);
+        snr_compare(buf_c, buf_ispc, m);
+        free(state_c);
+        free(state_ispc);
+    }
 }
 
 void test_bfly5()
@@ -124,23 +129,26 @@ void test_bfly5()
 	kiss_fft_cpx buf_c[NFFT];
 	kiss_fft_cpx buf_ispc[NFFT];
 	int fstride = 1;
-	unsigned int m = 30;
 
-	kiss_fft_cfg state_c = kiss_fft_alloc(NFFT, 0, 0, 0);
-	kiss_fft_cfg state_ispc = kiss_fft_alloc(NFFT, 0, 0, 0);
-	for (int i = 0; i < NFFT; ++i) {
-		buf_c[i].r = buf_ispc[i].r = rand_scalar();
-		buf_c[i].i = buf_ispc[i].i = rand_scalar();
-	}
-	kf_bfly5(buf_c, fstride, state_c, m);
-	ispc_bfly5((struct ispc_cpx *)buf_ispc, fstride, (struct ispc_state *)state_ispc, m);
-	printf("### bfly5(C) ###\n");
-	print_debug(buf_c, NFFT, 16);
-	printf("### bfly5(ISPC) ###\n");
-	print_debug(buf_ispc, NFFT, 16);
-    snr_compare(buf_c, buf_ispc, NFFT);
-	free(state_c);
-	free(state_ispc);
+    for (int i=-1; i<=1; ++i) {
+        int m = 16 + i;
+
+        kiss_fft_cfg state_c = kiss_fft_alloc(NFFT, 0, 0, 0);
+        kiss_fft_cfg state_ispc = kiss_fft_alloc(NFFT, 0, 0, 0);
+        for (int i = 0; i < NFFT; ++i) {
+            buf_c[i].r = buf_ispc[i].r = rand_scalar();
+            buf_c[i].i = buf_ispc[i].i = rand_scalar();
+        }
+        kf_bfly5(buf_c, fstride, state_c, m);
+        ispc_bfly5((struct ispc_cpx *)buf_ispc, fstride, (struct ispc_state *)state_ispc, m);
+        printf("\n### bfly5(m: %d, C) ###\n", m);
+        print_debug(buf_c, NFFT, m);
+        printf("\n### bfly5(m: %d, ISPC) ###\n", m);
+        print_debug(buf_ispc, NFFT, m);
+        snr_compare(buf_c, buf_ispc, m);
+        free(state_c);
+        free(state_ispc);
+    }
 }
 
 #endif
